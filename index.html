@@ -1,0 +1,2390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPL Match Winner & Score Predictor | AI T20 Match Center</title>
+  <meta name="description" content="State-of-the-art IPL Match Winner & Score Prediction web application. Live win probability, final score projection, stadium telemetry, and T20 analytics.">
+  <meta name="keywords" content="IPL, IPL prediction, cricket score predictor, win probability, T20 cricket, CSK, MI, RCB, KKR">
+  <meta property="og:title" content="IPL Match Winner & Final Score Predictor">
+  <meta property="og:description" content="Calculate projected final scores and live match win probabilities for all 10 IPL teams across premier venues.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts: Inter & Rajdhani for Sports Scoreboard feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700;800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #080b14;
+      --bg-surface: #0f1526;
+      --bg-card: rgba(18, 25, 44, 0.78);
+      --bg-card-hover: rgba(26, 36, 62, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(255, 184, 0, 0.35);
+      
+      --gold-primary: #FFB800;
+      --gold-glow: rgba(255, 184, 0, 0.25);
+      --ipl-blue: #004BA0;
+      --accent-neon: #00F0FF;
+      --accent-red: #FF3366;
+      --accent-green: #00E676;
+      
+      --text-main: #FFFFFF;
+      --text-muted: #8E9BAE;
+      --text-dim: #5C677D;
+
+      --bat-color: #FFB800;
+      --bowl-color: #0077B6;
+      
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-num: 'Teko', sans-serif;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
+      --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 75, 160, 0.22) 0%, transparent 40%),
+        radial-gradient(circle at 90% 15%, rgba(255, 184, 0, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(0, 240, 255, 0.09) 0%, transparent 50%),
+        linear-gradient(180deg, #060911 0%, #0c1222 100%);
+      background-attachment: fixed;
+    }
+
+    /* Ambient Stadium Lighting Effects */
+    .stadium-beam {
+      position: fixed;
+      pointer-events: none;
+      top: -200px;
+      width: 450px;
+      height: 700px;
+      filter: blur(120px);
+      opacity: 0.25;
+      z-index: 0;
+      transform: rotate(-25deg);
+    }
+    .beam-left {
+      left: -100px;
+      background: radial-gradient(ellipse at center, #0077b6 0%, transparent 70%);
+    }
+    .beam-right {
+      right: -100px;
+      background: radial-gradient(ellipse at center, #ffb800 0%, transparent 70%);
+      transform: rotate(25deg);
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    /* Header Section */
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      background: rgba(15, 21, 38, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      margin-bottom: 1.5rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #FFB800 0%, #E65100 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(255, 184, 0, 0.5);
+    }
+
+    .brand-logo-badge svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #FFFFFF 0%, #FFD54F 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .live-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      color: #00E676;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #00E676;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00E676;
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      text-align: center;
+      padding: 2.2rem 1.5rem 1.8rem;
+      background: radial-gradient(circle at 50% 0%, rgba(255, 184, 0, 0.12) 0%, rgba(15, 21, 38, 0.6) 70%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-highlight), transparent);
+    }
+
+    .trophy-glow {
+      position: absolute;
+      top: 10px;
+      right: 25px;
+      opacity: 0.08;
+      width: 140px;
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-family: var(--font-display);
+      color: var(--gold-primary);
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.4rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.7rem);
+      font-weight: 800;
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #FFB800 20%, #FF8008 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 25px rgba(255, 184, 0, 0.3);
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 680px;
+      margin: 0 auto 1.25rem;
+    }
+
+    /* Preset scenarios pill bar */
+    .presets-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .preset-label {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 0.25rem;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .preset-btn:hover {
+      background: rgba(255, 184, 0, 0.15);
+      border-color: rgba(255, 184, 0, 0.4);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Main Grid Layout */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 1.75rem;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Panels */
+    .card-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .card-panel:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1.4rem;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title-icon {
+      color: var(--gold-primary);
+    }
+
+    /* Match Mode Switch */
+    .mode-switch-wrapper {
+      display: flex;
+      background: rgba(8, 11, 20, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 3px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: var(--transition);
+      letter-spacing: 0.04em;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #FFB800 0%, #FF8008 100%);
+      color: #000;
+      box-shadow: 0 2px 8px rgba(255, 184, 0, 0.3);
+    }
+
+    /* Team Head-to-Head Picker */
+    .teams-select-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .team-box {
+      background: rgba(8, 11, 20, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.9rem;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .team-box.batting-focused {
+      border-color: rgba(255, 184, 0, 0.4);
+      background: rgba(255, 184, 0, 0.04);
+    }
+
+    .team-box.bowling-focused {
+      border-color: rgba(0, 119, 182, 0.4);
+      background: rgba(0, 119, 182, 0.04);
+    }
+
+    .team-badge-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .team-role-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+    }
+
+    .role-batting {
+      background: rgba(255, 184, 0, 0.15);
+      color: #FFB800;
+      border: 1px solid rgba(255, 184, 0, 0.3);
+    }
+
+    .role-bowling {
+      background: rgba(0, 119, 182, 0.18);
+      color: #48CAE4;
+      border: 1px solid rgba(0, 119, 182, 0.3);
+    }
+
+    .team-visual-preview {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .team-emblem-small {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .team-quick-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .team-code {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .team-full-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .custom-select {
+      width: 100%;
+      background: rgba(15, 21, 38, 0.95);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      outline: none;
+      transition: var(--transition);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238E9BAE' viewBox='0 0 16 16'%3E%3Cpath d='M8 11.5l-5-5h10l-5 5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    .custom-select:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 2px rgba(255, 184, 0, 0.2);
+    }
+
+    .custom-select option {
+      background: #0f1526;
+      color: #fff;
+      padding: 8px;
+    }
+
+    .swap-btn-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .swap-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .swap-btn:hover {
+      background: var(--gold-primary);
+      color: #000;
+      transform: rotate(180deg);
+      box-shadow: 0 0 12px rgba(255, 184, 0, 0.5);
+    }
+
+    .vs-text {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-dim);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.45rem;
+    }
+
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label-badge {
+      font-size: 0.72rem;
+      color: var(--gold-primary);
+      font-weight: 600;
+    }
+
+    /* Input with quick adjusters */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 520px) {
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-input-card {
+      background: rgba(8, 11, 20, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+    }
+
+    .stat-input-card:focus-within {
+      border-color: rgba(255, 184, 0, 0.45);
+    }
+
+    .number-input-field {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: var(--font-num);
+      font-size: 2.3rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0;
+      outline: none;
+    }
+
+    .quick-tags {
+      display: flex;
+      gap: 5px;
+      margin-top: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-tag {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .quick-tag:hover {
+      background: rgba(255, 184, 0, 0.15);
+      color: var(--gold-primary);
+      border-color: rgba(255, 184, 0, 0.3);
+    }
+
+    /* Overs Slider & Stepper */
+    .overs-control-box {
+      margin-top: 0.4rem;
+    }
+
+    .range-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+      margin: 0.6rem 0 0.4rem;
+    }
+
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold-primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 184, 0, 0.6);
+      transition: transform 0.1s ease;
+    }
+
+    .range-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Interactive Wickets Grid Selector */
+    .wickets-grid {
+      display: grid;
+      grid-template-columns: repeat(11, 1fr);
+      gap: 4px;
+      margin-top: 0.5rem;
+    }
+
+    .wicket-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wicket-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .wicket-btn.selected {
+      background: linear-gradient(135deg, #FF3366 0%, #C2185B 100%);
+      border-color: #FF3366;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+    }
+
+    /* Venue Specs pill */
+    .venue-info-box {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      background: rgba(8, 11, 20, 0.5);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--gold-primary);
+    }
+
+    /* Predict Action Button */
+    .predict-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #FFB800 0%, #FF8008 50%, #E65100 100%);
+      border: none;
+      color: #080b14;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.95rem 1.5rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 8px 24px rgba(255, 184, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 1.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .predict-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 70%
+      );
+      transform: rotate(45deg);
+      transition: transform 0.6s ease;
+      opacity: 0;
+    }
+
+    .predict-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(255, 184, 0, 0.5);
+    }
+
+    .predict-btn:hover::before {
+      transform: rotate(45deg) translate(80%, -80%);
+      opacity: 1;
+    }
+
+    .predict-btn:active {
+      transform: translateY(0);
+    }
+
+    /* RESULTS CARD PANEL */
+    .results-wrapper {
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .match-header-card {
+      background: linear-gradient(180deg, rgba(15, 21, 38, 0.9) 0%, rgba(8, 11, 20, 0.9) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .match-header-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--bat-color) 0%, var(--gold-primary) 50%, var(--bowl-color) 100%);
+    }
+
+    /* Head to Head Duel Visual */
+    .duel-container {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .team-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.75rem 0.5rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    .team-card.favored {
+      border-color: rgba(255, 184, 0, 0.35);
+      background: rgba(255, 184, 0, 0.05);
+      box-shadow: 0 0 20px rgba(255, 184, 0, 0.1);
+    }
+
+    .team-crest-large {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .team-crest-large svg {
+      width: 52px;
+      height: 52px;
+    }
+
+    .crest-bat-indicator {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: #000;
+      border: 1.5px solid var(--gold-primary);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .team-card-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .team-card-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .duel-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .duel-vs-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--gold-primary);
+      margin-bottom: 4px;
+    }
+
+    .duel-venue-tag {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      max-width: 90px;
+      line-height: 1.2;
+    }
+
+    /* Win Probability Visual Meter */
+    .win-prob-section {
+      background: rgba(8, 11, 20, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .win-prob-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .win-prob-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .prob-numbers-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.5rem;
+    }
+
+    .prob-val {
+      font-family: var(--font-num);
+      font-size: 2.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .prob-val-bat {
+      color: var(--bat-color);
+    }
+
+    .prob-val-bowl {
+      color: var(--bowl-color);
+    }
+
+    .prob-bar-container {
+      width: 100%;
+      height: 16px;
+      background: #080b14;
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      display: flex;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .prob-bar-fill-bat {
+      height: 100%;
+      background: linear-gradient(90deg, #FF9800 0%, #FFB800 100%);
+      transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+    }
+
+    .prob-bar-fill-bowl {
+      height: 100%;
+      background: linear-gradient(90deg, #0077B6 0%, #0096C7 100%);
+      transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .prob-bar-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #fff;
+      box-shadow: 0 0 6px #fff;
+      transform: translateX(-50%);
+      transition: left 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+      z-index: 2;
+    }
+
+    /* Score Prediction Showcase */
+    .score-showcase {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .score-primary-card {
+      background: linear-gradient(135deg, rgba(255, 184, 0, 0.12) 0%, rgba(255, 128, 8, 0.06) 100%);
+      border: 1px solid rgba(255, 184, 0, 0.35);
+      border-radius: var(--radius-md);
+      padding: 1.1rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .score-badge-tag {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255, 184, 0, 0.2);
+      border: 1px solid rgba(255, 184, 0, 0.4);
+      color: #FFB800;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+    }
+
+    .score-label {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .score-huge-value {
+      font-family: var(--font-num);
+      font-size: 4.4rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #FFFFFF;
+      text-shadow: 0 0 25px rgba(255, 184, 0, 0.4);
+      margin: 0.2rem 0;
+    }
+
+    .score-range-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 0.2rem;
+    }
+
+    .score-range-sub span {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Telemetry Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .metric-cell {
+      background: rgba(8, 11, 20, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+    }
+
+    .metric-caption {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .metric-val {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 2px;
+    }
+
+    /* Verdict Insight Box */
+    .verdict-box {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+
+    .verdict-icon {
+      color: var(--accent-neon);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .verdict-text {
+      font-size: 0.82rem;
+      color: #D1E8E2;
+      line-height: 1.45;
+    }
+
+    .share-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .share-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .share-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    /* Tooltip / Toast notification */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #00E676;
+      color: #000;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 10px 25px rgba(0, 230, 118, 0.4);
+      z-index: 999;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 3.5rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1.5rem;
+    }
+
+    footer a {
+      color: var(--gold-primary);
+      text-decoration: none;
+    }
+
+    /* Custom SVGs and Emblems */
+    .icon-svg {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      vertical-align: middle;
+      fill: currentColor;
+    }
+
+    /* Hide Chasing Fields conditionally */
+    .hidden-field {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Lighting Effects -->
+  <div class="stadium-beam beam-left"></div>
+  <div class="stadium-beam beam-right"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-msg">Prediction summary copied to clipboard!</div>
+
+  <div class="wrapper">
+    <!-- Header -->
+    <header>
+      <nav class="top-nav">
+        <div class="brand-group">
+          <div class="brand-logo-badge">
+            <!-- Cricket Ball / Trophy SVG -->
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+          </div>
+          <span class="brand-title">IPL Match Center Pro</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="live-chip">
+            <span class="live-dot"></span>
+            T20 AI Engine v2.4
+          </div>
+        </div>
+      </nav>
+
+      <!-- Hero Banner -->
+      <section class="hero-banner">
+        <div class="hero-tag">Official Simulation & Probability Matrix</div>
+        <h1 class="hero-title">IPL Match Winner & <span>Score Predictor</span></h1>
+        <p class="hero-desc">
+          Predict dynamic T20 final scores, live win probability shifts, death overs trajectory, and venue-adjusted match outcomes for all 10 franchises.
+        </p>
+
+        <!-- Match situation quick presets -->
+        <div class="presets-container">
+          <span class="preset-label">⚡ Quick Scenarios:</span>
+          <button type="button" class="preset-btn" onclick="applyPreset('el-clasico')">🦁 CSK vs MI (Classic)</button>
+          <button type="button" class="preset-btn" onclick="applyPreset('rcb-chase')">👑 RCB Run Chase (Chinnaswamy)</button>
+          <button type="button" class="preset-btn" onclick="applyPreset('death-blitz')">💥 SRH Death Blitz (16 ov)</button>
+          <button type="button" class="preset-btn" onclick="applyPreset('collapse-thriller')">🚨 Mid-Innings Collapse</button>
+        </div>
+      </section>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="app-grid">
+      <!-- Input Configuration Panel -->
+      <section class="card-panel" aria-label="Match Configuration Form">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <span class="panel-title-icon">⚙️</span> Match Parameters
+          </h2>
+          
+          <div class="mode-switch-wrapper" role="radiogroup" aria-label="Innings Selection">
+            <button type="button" id="mode1st" class="mode-btn active" onclick="setInningsMode(1)">1st Innings</button>
+            <button type="button" id="mode2nd" class="mode-btn" onclick="setInningsMode(2)">2nd Innings (Chase)</button>
+          </div>
+        </div>
+
+        <!-- Form Elements -->
+        <form id="predictionForm" onsubmit="event.preventDefault(); calculatePrediction();">
+          <!-- Team Selectors with VS Badge -->
+          <div class="teams-select-grid">
+            <!-- Batting Team -->
+            <div class="team-box batting-focused" id="battingBox">
+              <div class="team-badge-header">
+                <span class="team-role-pill role-batting" id="batRoleLabel">Batting First</span>
+                <span style="font-size: 0.7rem; color: var(--gold-primary);">🏏 Striking</span>
+              </div>
+              <div class="team-visual-preview">
+                <div class="team-emblem-small" id="batBadgePreview"></div>
+                <div class="team-quick-info">
+                  <div class="team-code" id="batCodeText">CSK</div>
+                  <div class="team-full-name" id="batNameText">Chennai Super Kings</div>
+                </div>
+              </div>
+              <select id="battingTeam" class="custom-select" onchange="onTeamChange('batting')" aria-label="Select Batting Team">
+                <!-- Injected via JS -->
+              </select>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-btn-container">
+              <button type="button" class="swap-btn" onclick="swapTeams()" title="Swap Batting & Bowling Teams" aria-label="Swap Teams">
+                ⇄
+              </button>
+              <span class="vs-text">VS</span>
+            </div>
+
+            <!-- Bowling Team -->
+            <div class="team-box bowling-focused" id="bowlingBox">
+              <div class="team-badge-header">
+                <span class="team-role-pill role-bowling" id="bowlRoleLabel">Bowling</span>
+                <span style="font-size: 0.7rem; color: #48CAE4;">🎯 Defending</span>
+              </div>
+              <div class="team-visual-preview">
+                <div class="team-emblem-small" id="bowlBadgePreview"></div>
+                <div class="team-quick-info">
+                  <div class="team-code" id="bowlCodeText">MI</div>
+                  <div class="team-full-name" id="bowlNameText">Mumbai Indians</div>
+                </div>
+              </div>
+              <select id="bowlingTeam" class="custom-select" onchange="onTeamChange('bowling')" aria-label="Select Bowling Team">
+                <!-- Injected via JS -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Stadium / Venue Selector -->
+          <div class="form-group">
+            <div class="label-row">
+              <label for="venueSelect" class="form-label">
+                <span>🏟️ Match Venue & Pitch Conditions</span>
+              </label>
+              <span class="label-badge" id="venueParBadge">Avg 1st Innings: 188</span>
+            </div>
+            <select id="venueSelect" class="custom-select" onchange="onVenueChange()">
+              <!-- Injected via JS -->
+            </select>
+            <div class="venue-info-box" id="venueDescription">
+              <span>High scoring venue, true bounce with dew factor in the 2nd innings.</span>
+            </div>
+          </div>
+
+          <!-- Target Score (Only active in 2nd Innings / Run Chase mode) -->
+          <div class="form-group hidden-field" id="targetScoreGroup">
+            <div class="label-row">
+              <label for="targetScore" class="form-label">
+                <span>🎯 Target to Chase (Runs)</span>
+              </label>
+              <span class="label-badge" id="targetHint">Batting team chasing</span>
+            </div>
+            <div class="stat-input-card">
+              <input type="number" id="targetScore" class="number-input-field" min="60" max="320" value="195" oninput="liveUpdateTelemetry()">
+              <div class="quick-tags">
+                <button type="button" class="quick-tag" onclick="setTarget(165)">165 (Par)</button>
+                <button type="button" class="quick-tag" onclick="setTarget(185)">185 (Competitive)</button>
+                <button type="button" class="quick-tag" onclick="setTarget(205)">205 (High Score)</button>
+                <button type="button" class="quick-tag" onclick="setTarget(225)">225 (Mammoth)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Runs & Overs Completed -->
+          <div class="input-row form-group">
+            <!-- Current Runs -->
+            <div class="stat-input-card">
+              <div class="label-row">
+                <label for="currentRuns" class="form-label">Current Runs</label>
+                <span class="label-badge">Score</span>
+              </div>
+              <input type="number" id="currentRuns" class="number-input-field" min="0" max="300" value="112" oninput="liveUpdateTelemetry()" required>
+              <div class="quick-tags">
+                <button type="button" class="quick-tag" onclick="addRuns(1)">+1</button>
+                <button type="button" class="quick-tag" onclick="addRuns(4)">+4</button>
+                <button type="button" class="quick-tag" onclick="addRuns(6)">+6</button>
+                <button type="button" class="quick-tag" onclick="setRuns(50)">50</button>
+                <button type="button" class="quick-tag" onclick="setRuns(100)">100</button>
+                <button type="button" class="quick-tag" onclick="setRuns(150)">150</button>
+              </div>
+            </div>
+
+            <!-- Overs Completed -->
+            <div class="stat-input-card">
+              <div class="label-row">
+                <label for="oversCompleted" class="form-label">Overs Completed</label>
+                <span class="label-badge" id="ballsDisplay">72 Balls</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 6px;">
+                <input type="number" id="oversCompleted" class="number-input-field" step="0.1" min="5.0" max="20.0" value="12.0" oninput="syncOversFromInput()" required>
+                <span style="color: var(--text-dim); font-size: 1.1rem; font-weight: 700;">/ 20.0</span>
+              </div>
+              
+              <div class="overs-control-box">
+                <input type="range" id="oversSlider" class="range-slider" min="5.0" max="20.0" step="0.1" value="12.0" oninput="syncOversFromSlider()">
+                <div class="quick-tags" style="justify-content: space-between;">
+                  <button type="button" class="quick-tag" onclick="setOvers(6.0)">Powerplay (6.0)</button>
+                  <button type="button" class="quick-tag" onclick="setOvers(10.0)">Halfway (10.0)</button>
+                  <button type="button" class="quick-tag" onclick="setOvers(15.0)">Death (15.0)</button>
+                  <button type="button" class="quick-tag" onclick="setOvers(18.0)">Penultimate (18.0)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wickets Fallen (0 to 10) -->
+          <div class="form-group">
+            <div class="label-row">
+              <label class="form-label">
+                <span>Out Wickets Fallen (0 to 10)</span>
+              </label>
+              <span class="label-badge" id="wicketsRemainingBadge">8 Wickets in hand</span>
+            </div>
+            
+            <div class="wickets-grid" id="wicketsPicker" role="radiogroup" aria-label="Select Wickets Fallen">
+              <!-- 0 through 10 generated via JS -->
+            </div>
+          </div>
+
+          <!-- Predict Button -->
+          <button type="submit" id="predictBtn" class="predict-btn">
+            <span>⚡ Calculate Prediction</span>
+            <svg class="icon-svg" viewBox="0 0 24 24">
+              <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <!-- Results Display Panel -->
+      <section class="results-wrapper" aria-label="Prediction Results & Telemetry">
+        <div class="match-header-card" id="resultCard">
+          
+          <!-- Head to Head Team Badges Duel -->
+          <div class="duel-container">
+            <!-- Batting Team Card -->
+            <div class="team-card favored" id="cardBatting">
+              <div class="team-crest-large" id="crestBatting">
+                <div class="crest-bat-indicator">🏏</div>
+              </div>
+              <div class="team-card-name" id="displayBattingCode">CSK</div>
+              <div class="team-card-sub" id="displayBattingRole">Batting First</div>
+            </div>
+
+            <!-- VS Circle & Stadium -->
+            <div class="duel-mid">
+              <div class="duel-vs-circle">VS</div>
+              <div class="duel-venue-tag" id="displayVenueName">Wankhede, Mumbai</div>
+            </div>
+
+            <!-- Bowling Team Card -->
+            <div class="team-card" id="cardBowling">
+              <div class="team-crest-large" id="crestBowling"></div>
+              <div class="team-card-name" id="displayBowlingCode">MI</div>
+              <div class="team-card-sub" id="displayBowlingRole">Bowling</div>
+            </div>
+          </div>
+
+          <!-- Win Probability Gauge -->
+          <div class="win-prob-section">
+            <div class="win-prob-header">
+              <span class="win-prob-title">Win Probability</span>
+              <span style="font-size: 0.72rem; color: var(--gold-primary); font-weight: 700;" id="favoriteTeamPill">CSK Favored</span>
+            </div>
+            
+            <div class="prob-numbers-row">
+              <div class="prob-val prob-val-bat" id="batWinProbText">62%</div>
+              <div class="prob-val prob-val-bowl" id="bowlWinProbText">38%</div>
+            </div>
+
+            <div class="prob-bar-container">
+              <div class="prob-bar-fill-bat" id="probBarBat" style="width: 62%;"></div>
+              <div class="prob-bar-divider" id="probDivider" style="left: 62%;"></div>
+              <div class="prob-bar-fill-bowl" id="probBarBowl" style="width: 38%;"></div>
+            </div>
+          </div>
+
+          <!-- Projected Final Score Card -->
+          <div class="score-showcase">
+            <div class="score-primary-card">
+              <div class="score-badge-tag" id="scoreModelTag">Monte Carlo T20</div>
+              <div class="score-label" id="scoreCardLabel">Projected Final Score</div>
+              <div class="score-huge-value" id="projectedScoreValue">194</div>
+              <div class="score-range-sub">
+                <div>Safe: <span id="scoreRangeLow">182</span></div>
+                <div>Median: <span id="scoreMedian">194</span></div>
+                <div>Aggressive: <span id="scoreRangeHigh">210</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Match Telemetry -->
+          <div class="metrics-grid">
+            <div class="metric-cell">
+              <div class="metric-caption">Current RR</div>
+              <div class="metric-val" id="metricCRR">9.33</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-caption" id="metric2Label">Projected Death RR</div>
+              <div class="metric-val" id="metricRRR">11.4</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-caption">Wickets Left</div>
+              <div class="metric-val" id="metricWicketsLeft">8 / 10</div>
+            </div>
+          </div>
+
+          <!-- Tactical Verdict AI -->
+          <div class="verdict-box">
+            <div class="verdict-icon">
+              <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+            </div>
+            <div class="verdict-text" id="verdictText">
+              CSK are tracking well ahead of par for this venue. Maintaining wickets in hand will allow a high-octane finish in the final 5 overs.
+            </div>
+          </div>
+
+          <!-- Action and Share -->
+          <div class="share-row">
+            <button type="button" class="share-btn" onclick="copyPrediction()">
+              <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+              </svg>
+              Copy Summary
+            </button>
+            <button type="button" class="share-btn" onclick="shareTwitter()">
+              <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Share on X
+            </button>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>IPL Match Winner & Score Predictor • Built with pure HTML, CSS, & Vanilla JS</p>
+      <p style="margin-top: 4px; font-size: 0.74rem;">Ready for immediate deployment to GitHub Pages. All franchise trademarks belong to their respective IPL owners.</p>
+    </footer>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       DATA DICTIONARY: IPL TEAMS (Colors, Names, Logos & Strength Ratings)
+       ========================================================================== */
+    const IPL_TEAMS = [
+      {
+        id: "CSK",
+        name: "Chennai Super Kings",
+        shortName: "Chennai",
+        color: "#F9CD05",
+        secondaryColor: "#0081E9",
+        batRating: 88,
+        bowlRating: 86,
+        chaseRating: 89,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#F9CD05" stroke="#0081E9" stroke-width="4"/>
+          <!-- Roaring Lion Stylized Crown -->
+          <path d="M50 16L59 34H41L50 16Z" fill="#E65100"/>
+          <path d="M28 42C28 32 38 28 50 28C62 28 72 32 72 42C72 58 58 72 50 78C42 72 28 58 28 42Z" fill="#D84315"/>
+          <circle cx="42" cy="42" r="3.5" fill="#FFF"/>
+          <circle cx="58" cy="42" r="3.5" fill="#FFF"/>
+          <path d="M44 54C47 57 53 57 56 54" stroke="#FFF" stroke-width="3" stroke-linecap="round"/>
+          <text x="50" y="90" font-family="'Rajdhani', sans-serif" font-size="14" font-weight="800" fill="#0081E9" text-anchor="middle">CSK</text>
+        </svg>`
+      },
+      {
+        id: "MI",
+        name: "Mumbai Indians",
+        shortName: "Mumbai",
+        color: "#004BA0",
+        secondaryColor: "#D1AB3E",
+        batRating: 89,
+        bowlRating: 87,
+        chaseRating: 88,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#004BA0" stroke="#D1AB3E" stroke-width="4"/>
+          <!-- Sudarshan Chakra / Cyclone Blades -->
+          <path d="M50 22C50 22 55 35 68 35C81 35 78 50 78 50C78 50 65 55 65 68C65 81 50 78 50 78C50 78 45 65 32 65C19 65 22 50 22 50C22 50 35 45 35 32C35 19 50 22 50 22Z" fill="#D1AB3E"/>
+          <circle cx="50" cy="50" r="12" fill="#004BA0" stroke="#FFF" stroke-width="2"/>
+          <text x="50" y="90" font-family="'Rajdhani', sans-serif" font-size="14" font-weight="800" fill="#FFF" text-anchor="middle">MI</text>
+        </svg>`
+      },
+      {
+        id: "RCB",
+        name: "Royal Challengers Bengaluru",
+        shortName: "Bengaluru",
+        color: "#EC1C24",
+        secondaryColor: "#C9922C",
+        batRating: 92,
+        bowlRating: 81,
+        chaseRating: 86,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#111" stroke="#EC1C24" stroke-width="4"/>
+          <!-- Royal Lion & Crown -->
+          <path d="M30 35L38 22L50 30L62 22L70 35H30Z" fill="#C9922C"/>
+          <path d="M34 40C34 40 40 58 50 62C60 58 66 40 66 40L50 48L34 40Z" fill="#EC1C24"/>
+          <circle cx="50" cy="38" r="4" fill="#C9922C"/>
+          <text x="50" y="85" font-family="'Rajdhani', sans-serif" font-size="13" font-weight="800" fill="#C9922C" text-anchor="middle">RCB</text>
+        </svg>`
+      },
+      {
+        id: "KKR",
+        name: "Kolkata Knight Riders",
+        shortName: "Kolkata",
+        color: "#3A225D",
+        secondaryColor: "#F4C430",
+        batRating: 90,
+        bowlRating: 88,
+        chaseRating: 87,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#3A225D" stroke="#F4C430" stroke-width="4"/>
+          <!-- Knight Helmet & Shield Motif -->
+          <path d="M30 32L50 20L70 32V52C70 66 50 78 50 78C50 78 30 66 30 52V32Z" fill="#F4C430"/>
+          <path d="M38 38L50 30L62 38V50C62 58 50 66 50 66C50 66 38 58 38 50V38Z" fill="#3A225D"/>
+          <rect x="46" y="44" width="8" height="14" fill="#F4C430"/>
+          <text x="50" y="90" font-family="'Rajdhani', sans-serif" font-size="13" font-weight="800" fill="#F4C430" text-anchor="middle">KKR</text>
+        </svg>`
+      },
+      {
+        id: "SRH",
+        name: "Sunrisers Hyderabad",
+        shortName: "Hyderabad",
+        color: "#F26522",
+        secondaryColor: "#000000",
+        batRating: 94,
+        bowlRating: 84,
+        chaseRating: 85,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#111" stroke="#F26522" stroke-width="4"/>
+          <!-- Rising Sun & Eagle Wings -->
+          <path d="M50 20C32 20 20 42 20 42C20 42 36 36 50 48C64 36 80 42 80 42C80 42 68 20 50 20Z" fill="#F26522"/>
+          <circle cx="50" cy="50" r="14" fill="#FF8A50"/>
+          <path d="M32 64C42 74 58 74 68 64" stroke="#F26522" stroke-width="4" stroke-linecap="round"/>
+          <text x="50" y="88" font-family="'Rajdhani', sans-serif" font-size="13" font-weight="800" fill="#F26522" text-anchor="middle">SRH</text>
+        </svg>`
+      },
+      {
+        id: "RR",
+        name: "Rajasthan Royals",
+        shortName: "Rajasthan",
+        color: "#EA1A85",
+        secondaryColor: "#254AA5",
+        batRating: 87,
+        bowlRating: 88,
+        chaseRating: 86,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#254AA5" stroke="#EA1A85" stroke-width="4"/>
+          <!-- Royal Lions Crest -->
+          <path d="M26 38L38 24L50 32L62 24L74 38L66 48L50 42L34 48L26 38Z" fill="#EA1A85"/>
+          <circle cx="50" cy="56" r="10" fill="#FFF"/>
+          <text x="50" y="86" font-family="'Rajdhani', sans-serif" font-size="14" font-weight="800" fill="#EA1A85" text-anchor="middle">RR</text>
+        </svg>`
+      },
+      {
+        id: "GT",
+        name: "Gujarat Titans",
+        shortName: "Gujarat",
+        color: "#1B2133",
+        secondaryColor: "#B3995D",
+        batRating: 87,
+        bowlRating: 89,
+        chaseRating: 90,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#1B2133" stroke="#B3995D" stroke-width="4"/>
+          <!-- Golden Lightning Bolt Spear -->
+          <polygon points="56,20 32,48 48,48 44,76 68,44 52,44" fill="#B3995D"/>
+          <text x="50" y="90" font-family="'Rajdhani', sans-serif" font-size="14" font-weight="800" fill="#B3995D" text-anchor="middle">GT</text>
+        </svg>`
+      },
+      {
+        id: "LSG",
+        name: "Lucknow Super Giants",
+        shortName: "Lucknow",
+        color: "#0057E7",
+        secondaryColor: "#FF5E00",
+        batRating: 86,
+        bowlRating: 87,
+        chaseRating: 85,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#0057E7" stroke="#FF5E00" stroke-width="4"/>
+          <!-- Falcon Flying Wings -->
+          <path d="M20 40C38 32 46 44 50 56C54 44 62 32 80 40C68 56 56 66 50 72C44 66 32 56 20 40Z" fill="#FFF"/>
+          <circle cx="50" cy="46" r="5" fill="#FF5E00"/>
+          <text x="50" y="88" font-family="'Rajdhani', sans-serif" font-size="13" font-weight="800" fill="#FFF" text-anchor="middle">LSG</text>
+        </svg>`
+      },
+      {
+        id: "DC",
+        name: "Delhi Capitals",
+        shortName: "Delhi",
+        color: "#004C97",
+        secondaryColor: "#E41D2D",
+        batRating: 86,
+        bowlRating: 85,
+        chaseRating: 84,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#004C97" stroke="#E41D2D" stroke-width="4"/>
+          <!-- Roaring Tiger Silhouette -->
+          <path d="M30 35C30 35 40 25 50 25C60 25 70 35 70 35C70 35 72 50 50 68C28 50 30 35 30 35Z" fill="#E41D2D"/>
+          <circle cx="42" cy="40" r="3" fill="#FFF"/>
+          <circle cx="58" cy="40" r="3" fill="#FFF"/>
+          <text x="50" y="88" font-family="'Rajdhani', sans-serif" font-size="14" font-weight="800" fill="#FFF" text-anchor="middle">DC</text>
+        </svg>`
+      },
+      {
+        id: "PBKS",
+        name: "Punjab Kings",
+        shortName: "Punjab",
+        color: "#DD1F2D",
+        secondaryColor: "#D1D5DB",
+        batRating: 85,
+        bowlRating: 84,
+        chaseRating: 83,
+        iconSvg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#DD1F2D" stroke="#D1D5DB" stroke-width="4"/>
+          <!-- Lion Shield Crest -->
+          <path d="M30 30H70V54C70 68 50 78 50 78C50 78 30 68 30 54V30Z" fill="#B71C1C"/>
+          <polygon points="50,38 42,48 58,48" fill="#FFF"/>
+          <text x="50" y="88" font-family="'Rajdhani', sans-serif" font-size="13" font-weight="800" fill="#FFF" text-anchor="middle">PBKS</text>
+        </svg>`
+      }
+    ];
+
+    /* ==========================================================================
+       DATA DICTIONARY: IPL PREMIER VENUES
+       ========================================================================== */
+    const IPL_VENUES = [
+      {
+        id: "wankhede",
+        name: "Wankhede Stadium, Mumbai",
+        shortName: "Wankhede, Mumbai",
+        avgScore: 186,
+        pitchType: "High scoring, true bounce, dew factor in chase",
+        paceFriendly: 1.05,
+        spinFriendly: 0.95,
+        chaseAdvantage: 1.08
+      },
+      {
+        id: "chinnaswamy",
+        name: "M. Chinnaswamy Stadium, Bengaluru",
+        shortName: "Chinnaswamy, Bengaluru",
+        avgScore: 196,
+        pitchType: "Short boundaries, maximum sixes, run festival",
+        paceFriendly: 0.9,
+        spinFriendly: 0.85,
+        chaseAdvantage: 1.12
+      },
+      {
+        id: "eden",
+        name: "Eden Gardens, Kolkata",
+        shortName: "Eden Gardens, Kolkata",
+        avgScore: 188,
+        pitchType: "Fast outfield, great carry, balanced contest",
+        paceFriendly: 1.02,
+        spinFriendly: 1.02,
+        chaseAdvantage: 1.05
+      },
+      {
+        id: "ahmedabad",
+        name: "Narendra Modi Stadium, Ahmedabad",
+        shortName: "Narendra Modi, Ahmedabad",
+        avgScore: 182,
+        pitchType: "Huge boundary dimensions, bounce & spin variety",
+        paceFriendly: 1.04,
+        spinFriendly: 1.06,
+        chaseAdvantage: 1.03
+      },
+      {
+        id: "chepauk",
+        name: "MA Chidambaram Stadium (Chepauk), Chennai",
+        shortName: "Chepauk, Chennai",
+        avgScore: 168,
+        pitchType: "Dry, spin-friendly turning track, slower surface",
+        paceFriendly: 0.92,
+        spinFriendly: 1.25,
+        chaseAdvantage: 0.96
+      },
+      {
+        id: "delhi",
+        name: "Arun Jaitley Stadium, Delhi",
+        shortName: "Arun Jaitley, Delhi",
+        avgScore: 185,
+        pitchType: "Small ground, hard surface, quick batting track",
+        paceFriendly: 0.98,
+        spinFriendly: 1.02,
+        chaseAdvantage: 1.06
+      },
+      {
+        id: "hyderabad",
+        name: "Rajiv Gandhi International Stadium, Hyderabad",
+        shortName: "Rajiv Gandhi, Hyderabad",
+        avgScore: 190,
+        pitchType: "High-scoring batting belter, flat deck",
+        paceFriendly: 0.95,
+        spinFriendly: 0.98,
+        chaseAdvantage: 1.04
+      },
+      {
+        id: "jaipur",
+        name: "Sawai Mansingh Stadium, Jaipur",
+        shortName: "SMS Stadium, Jaipur",
+        avgScore: 172,
+        pitchType: "Big square boundaries, steady pace, medium scores",
+        paceFriendly: 1.02,
+        spinFriendly: 1.08,
+        chaseAdvantage: 1.02
+      },
+      {
+        id: "dharamshala",
+        name: "HPCA Stadium, Dharamshala",
+        shortName: "HPCA, Dharamshala",
+        avgScore: 182,
+        pitchType: "High altitude ball travel, swing and seam movement",
+        paceFriendly: 1.20,
+        spinFriendly: 0.82,
+        chaseAdvantage: 1.05
+      },
+      {
+        id: "ekana",
+        name: "Ekana Cricket Stadium, Lucknow",
+        shortName: "Ekana, Lucknow",
+        avgScore: 165,
+        pitchType: "Grip and hold surface, challenging scoring, low totals",
+        paceFriendly: 0.94,
+        spinFriendly: 1.22,
+        chaseAdvantage: 0.94
+      }
+    ];
+
+    /* ==========================================================================
+       STATE MANAGEMENT
+       ========================================================================== */
+    let matchState = {
+      innings: 1, // 1 for 1st Innings, 2 for Run Chase
+      battingTeamId: "CSK",
+      bowlingTeamId: "MI",
+      venueId: "wankhede",
+      currentRuns: 112,
+      oversCompleted: 12.0,
+      wicketsFallen: 2,
+      targetScore: 195
+    };
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      populateTeamSelects();
+      populateVenueSelect();
+      renderWicketsPicker();
+      syncStateToUI();
+      calculatePrediction();
+    });
+
+    function populateTeamSelects() {
+      const batSelect = document.getElementById("battingTeam");
+      const bowlSelect = document.getElementById("bowlingTeam");
+
+      batSelect.innerHTML = IPL_TEAMS.map(team => 
+        `<option value="${team.id}">${team.name} (${team.id})</option>`
+      ).join("");
+
+      bowlSelect.innerHTML = IPL_TEAMS.map(team => 
+        `<option value="${team.id}">${team.name} (${team.id})</option>`
+      ).join("");
+
+      batSelect.value = matchState.battingTeamId;
+      bowlSelect.value = matchState.bowlingTeamId;
+      updateTeamVisuals();
+    }
+
+    function populateVenueSelect() {
+      const venueSelect = document.getElementById("venueSelect");
+      venueSelect.innerHTML = IPL_VENUES.map(v => 
+        `<option value="${v.id}">${v.name}</option>`
+      ).join("");
+      venueSelect.value = matchState.venueId;
+      onVenueChange();
+    }
+
+    function renderWicketsPicker() {
+      const container = document.getElementById("wicketsPicker");
+      let html = "";
+      for (let i = 0; i <= 10; i++) {
+        html += `<button type="button" class="wicket-btn ${i === matchState.wicketsFallen ? 'selected' : ''}" onclick="selectWickets(${i})" id="wicketBtn_${i}">${i}</button>`;
+      }
+      container.innerHTML = html;
+      updateWicketsBadge();
+    }
+
+    function selectWickets(num) {
+      matchState.wicketsFallen = num;
+      for (let i = 0; i <= 10; i++) {
+        const btn = document.getElementById(`wicketBtn_${i}`);
+        if (btn) {
+          btn.classList.toggle("selected", i === num);
+        }
+      }
+      updateWicketsBadge();
+      liveUpdateTelemetry();
+    }
+
+    function updateWicketsBadge() {
+      const rem = 10 - matchState.wicketsFallen;
+      const badge = document.getElementById("wicketsRemainingBadge");
+      if (matchState.wicketsFallen === 10) {
+        badge.textContent = "All Out (0 in hand)";
+        badge.style.color = "#FF3366";
+      } else {
+        badge.textContent = `${rem} wicket${rem === 1 ? '' : 's'} in hand`;
+        badge.style.color = rem <= 3 ? "#FF3366" : "var(--gold-primary)";
+      }
+    }
+
+    /* ==========================================================================
+       UI INTERACTIONS & SYNCS
+       ========================================================================== */
+    function setInningsMode(mode) {
+      matchState.innings = mode;
+      document.getElementById("mode1st").classList.toggle("active", mode === 1);
+      document.getElementById("mode2nd").classList.toggle("active", mode === 2);
+      
+      const targetGroup = document.getElementById("targetScoreGroup");
+      const batRole = document.getElementById("batRoleLabel");
+      const bowlRole = document.getElementById("bowlRoleLabel");
+      const cardLabel = document.getElementById("scoreCardLabel");
+      const metric2Label = document.getElementById("metric2Label");
+
+      if (mode === 1) {
+        targetGroup.classList.add("hidden-field");
+        batRole.textContent = "Batting First";
+        bowlRole.textContent = "Bowling First";
+        cardLabel.textContent = "Projected Final Score";
+        metric2Label.textContent = "Projected Death RR";
+      } else {
+        targetGroup.classList.remove("hidden-field");
+        batRole.textContent = "Chasing Target";
+        bowlRole.textContent = "Defending Target";
+        cardLabel.textContent = "Projected Chase Score";
+        metric2Label.textContent = "Required Run Rate (RRR)";
+      }
+
+      calculatePrediction();
+    }
+
+    function onTeamChange(changedType) {
+      const batSelect = document.getElementById("battingTeam");
+      const bowlSelect = document.getElementById("bowlingTeam");
+
+      if (batSelect.value === bowlSelect.value) {
+        // Automatically switch the other team to avoid self-match
+        const otherTeams = IPL_TEAMS.filter(t => t.id !== batSelect.value);
+        if (changedType === 'batting') {
+          bowlSelect.value = otherTeams[0].id;
+        } else {
+          batSelect.value = otherTeams[0].id;
+        }
+      }
+
+      matchState.battingTeamId = batSelect.value;
+      matchState.bowlingTeamId = bowlSelect.value;
+      updateTeamVisuals();
+      calculatePrediction();
+    }
+
+    function swapTeams() {
+      const temp = matchState.battingTeamId;
+      matchState.battingTeamId = matchState.bowlingTeamId;
+      matchState.bowlingTeamId = temp;
+
+      document.getElementById("battingTeam").value = matchState.battingTeamId;
+      document.getElementById("bowlingTeam").value = matchState.bowlingTeamId;
+
+      updateTeamVisuals();
+      calculatePrediction();
+    }
+
+    function updateTeamVisuals() {
+      const batTeam = IPL_TEAMS.find(t => t.id === matchState.battingTeamId);
+      const bowlTeam = IPL_TEAMS.find(t => t.id === matchState.bowlingTeamId);
+
+      // Root CSS Color bindings
+      document.documentElement.style.setProperty('--bat-color', batTeam.color);
+      document.documentElement.style.setProperty('--bowl-color', bowlTeam.color);
+
+      // Form previews
+      document.getElementById("batBadgePreview").innerHTML = batTeam.iconSvg;
+      document.getElementById("batBadgePreview").style.borderColor = batTeam.color;
+      document.getElementById("batCodeText").textContent = batTeam.id;
+      document.getElementById("batNameText").textContent = batTeam.name;
+
+      document.getElementById("bowlBadgePreview").innerHTML = bowlTeam.iconSvg;
+      document.getElementById("bowlBadgePreview").style.borderColor = bowlTeam.color;
+      document.getElementById("bowlCodeText").textContent = bowlTeam.id;
+      document.getElementById("bowlNameText").textContent = bowlTeam.name;
+
+      // Result cards
+      document.getElementById("crestBatting").innerHTML = batTeam.iconSvg + '<div class="crest-bat-indicator">🏏</div>';
+      document.getElementById("displayBattingCode").textContent = batTeam.id;
+      document.getElementById("displayBattingCode").style.color = batTeam.color;
+      document.getElementById("displayBattingRole").textContent = matchState.innings === 1 ? "Batting 1st" : "Chasing";
+
+      document.getElementById("crestBowling").innerHTML = bowlTeam.iconSvg;
+      document.getElementById("displayBowlingCode").textContent = bowlTeam.id;
+      document.getElementById("displayBowlingCode").style.color = bowlTeam.color;
+      document.getElementById("displayBowlingRole").textContent = matchState.innings === 1 ? "Bowling" : "Defending";
+    }
+
+    function onVenueChange() {
+      const venueSelect = document.getElementById("venueSelect");
+      matchState.venueId = venueSelect.value;
+      const venue = IPL_VENUES.find(v => v.id === matchState.venueId);
+
+      document.getElementById("venueParBadge").textContent = `Avg 1st Innings: ${venue.avgScore}`;
+      document.getElementById("venueDescription").innerHTML = `<span><strong>${venue.pitchType}</strong></span>`;
+      document.getElementById("displayVenueName").textContent = venue.shortName;
+
+      calculatePrediction();
+    }
+
+    /* Overs and Runs controls */
+    function syncOversFromSlider() {
+      const val = parseFloat(document.getElementById("oversSlider").value);
+      matchState.oversCompleted = val;
+      document.getElementById("oversCompleted").value = val.toFixed(1);
+      updateBallsDisplay();
+      liveUpdateTelemetry();
+    }
+
+    function syncOversFromInput() {
+      let val = parseFloat(document.getElementById("oversCompleted").value) || 5.0;
+      val = Math.max(5.0, Math.min(20.0, val));
+      
+      // Cricket balls check (decimal can only be .0 to .5, or round up)
+      const whole = Math.floor(val);
+      let dec = Math.round((val - whole) * 10);
+      if (dec > 5) {
+        dec = 5;
+        val = whole + 0.5;
+        document.getElementById("oversCompleted").value = val.toFixed(1);
+      }
+
+      matchState.oversCompleted = val;
+      document.getElementById("oversSlider").value = val;
+      updateBallsDisplay();
+      liveUpdateTelemetry();
+    }
+
+    function setOvers(val) {
+      matchState.oversCompleted = val;
+      document.getElementById("oversCompleted").value = val.toFixed(1);
+      document.getElementById("oversSlider").value = val;
+      updateBallsDisplay();
+      liveUpdateTelemetry();
+    }
+
+    function updateBallsDisplay() {
+      const ov = matchState.oversCompleted;
+      const whole = Math.floor(ov);
+      const balls = whole * 6 + Math.round((ov - whole) * 10);
+      document.getElementById("ballsDisplay").textContent = `${balls} Balls Bowled (${120 - balls} left)`;
+    }
+
+    function addRuns(amt) {
+      const input = document.getElementById("currentRuns");
+      let val = parseInt(input.value) || 0;
+      val += amt;
+      input.value = val;
+      matchState.currentRuns = val;
+      liveUpdateTelemetry();
+    }
+
+    function setRuns(val) {
+      document.getElementById("currentRuns").value = val;
+      matchState.currentRuns = val;
+      liveUpdateTelemetry();
+    }
+
+    function setTarget(val) {
+      document.getElementById("targetScore").value = val;
+      matchState.targetScore = val;
+      liveUpdateTelemetry();
+    }
+
+    function liveUpdateTelemetry() {
+      matchState.currentRuns = parseInt(document.getElementById("currentRuns").value) || 0;
+      matchState.targetScore = parseInt(document.getElementById("targetScore").value) || 180;
+      calculatePrediction();
+    }
+
+    function syncStateToUI() {
+      document.getElementById("currentRuns").value = matchState.currentRuns;
+      document.getElementById("oversCompleted").value = matchState.oversCompleted.toFixed(1);
+      document.getElementById("oversSlider").value = matchState.oversCompleted;
+      document.getElementById("targetScore").value = matchState.targetScore;
+      updateBallsDisplay();
+    }
+
+    /* ==========================================================================
+       PRESET SCENARIOS
+       ========================================================================== */
+    function applyPreset(presetKey) {
+      if (presetKey === 'el-clasico') {
+        // CSK vs MI Classic
+        matchState.innings = 1;
+        matchState.battingTeamId = "CSK";
+        matchState.bowlingTeamId = "MI";
+        matchState.venueId = "chepauk";
+        matchState.currentRuns = 124;
+        matchState.oversCompleted = 13.4;
+        matchState.wicketsFallen = 3;
+      } else if (presetKey === 'rcb-chase') {
+        // RCB Run Chase at Chinnaswamy
+        matchState.innings = 2;
+        matchState.battingTeamId = "RCB";
+        matchState.bowlingTeamId = "KKR";
+        matchState.venueId = "chinnaswamy";
+        matchState.targetScore = 208;
+        matchState.currentRuns = 142;
+        matchState.oversCompleted = 13.0;
+        matchState.wicketsFallen = 2;
+      } else if (presetKey === 'death-blitz') {
+        // SRH Death Blitz
+        matchState.innings = 1;
+        matchState.battingTeamId = "SRH";
+        matchState.bowlingTeamId = "RR";
+        matchState.venueId = "hyderabad";
+        matchState.currentRuns = 178;
+        matchState.oversCompleted = 16.0;
+        matchState.wicketsFallen = 3;
+      } else if (presetKey === 'collapse-thriller') {
+        // Mid innings collapse
+        matchState.innings = 1;
+        matchState.battingTeamId = "DC";
+        matchState.bowlingTeamId = "GT";
+        matchState.venueId = "ahmedabad";
+        matchState.currentRuns = 86;
+        matchState.oversCompleted = 11.2;
+        matchState.wicketsFallen = 6;
+      }
+
+      // Sync form
+      setInningsMode(matchState.innings);
+      document.getElementById("battingTeam").value = matchState.battingTeamId;
+      document.getElementById("bowlingTeam").value = matchState.bowlingTeamId;
+      document.getElementById("venueSelect").value = matchState.venueId;
+      onVenueChange();
+      selectWickets(matchState.wicketsFallen);
+      syncStateToUI();
+      updateTeamVisuals();
+      calculatePrediction();
+    }
+
+    /* ==========================================================================
+       PREDICTION ENGINE (T20 Resource, Pitch Factor & Win Probability)
+       ========================================================================== */
+    function calculatePrediction() {
+      const batTeam = IPL_TEAMS.find(t => t.id === matchState.battingTeamId);
+      const bowlTeam = IPL_TEAMS.find(t => t.id === matchState.bowlingTeamId);
+      const venue = IPL_VENUES.find(v => v.id === matchState.venueId);
+
+      const runs = matchState.currentRuns;
+      const overs = matchState.oversCompleted;
+      const wickets = matchState.wicketsFallen;
+      const target = matchState.targetScore;
+
+      // Ball calculation
+      const wholeOvers = Math.floor(overs);
+      const ballsInOver = Math.round((overs - wholeOvers) * 10);
+      const totalBallsBowled = Math.min(120, wholeOvers * 6 + ballsInOver);
+      const totalBallsRemaining = Math.max(0, 120 - totalBallsBowled);
+      const oversBowledFloat = totalBallsBowled / 6;
+      const oversRemainingFloat = totalBallsRemaining / 6;
+
+      // Current Run Rate (CRR)
+      const crr = oversBowledFloat > 0 ? (runs / oversBowledFloat) : 0;
+      document.getElementById("metricCRR").textContent = crr.toFixed(2);
+
+      // Wickets Resource Function (DLS inspired curve for T20)
+      const wicketsRemaining = 10 - wickets;
+      document.getElementById("metricWicketsLeft").textContent = `${wicketsRemaining} / 10`;
+
+      // If all out, innings ended
+      if (wickets >= 10 || totalBallsRemaining === 0) {
+        handleInningsTerminated(runs, batTeam, bowlTeam, target);
+        return;
+      }
+
+      // 1. Expected Scoring Rate in Remaining Overs (RPO)
+      // Base phase scoring rates:
+      // Middle overs (up to 15): ~8.2 rpo, Death overs (16-20): ~11.0 rpo
+      let baseDeathRPO = 10.6;
+      if (totalBallsBowled < 90) {
+        // Blend between middle & death
+        baseDeathRPO = 8.8 + ((totalBallsBowled - 30) / 60) * 1.8;
+      }
+
+      // Wickets resource multiplier: 10 wickets = 1.15x, 5 wickets = 0.90x, 2 wickets = 0.65x
+      const wicketMultiplier = Math.pow(Math.max(0.1, wicketsRemaining / 10), 0.55);
+
+      // Pitch scoring factor
+      const pitchMultiplier = venue.avgScore / 180.0;
+
+      // Team Batting vs Bowling strength delta
+      const teamStrengthDelta = (batTeam.batRating - bowlTeam.bowlRating) * 0.08;
+
+      // Expected remaining run rate
+      let expectedRemainingRR = (baseDeathRPO * wicketMultiplier * pitchMultiplier) + (teamStrengthDelta * 0.3);
+      // Blend 35% with current run rate momentum
+      expectedRemainingRR = (expectedRemainingRR * 0.65) + (crr * 0.35);
+      expectedRemainingRR = Math.max(4.0, Math.min(15.5, expectedRemainingRR));
+
+      const projectedRemainingRuns = Math.round(expectedRemainingRR * oversRemainingFloat);
+      const projectedTotal = runs + projectedRemainingRuns;
+
+      // Scoring Range Bounds
+      const uncertainty = Math.round(Math.sqrt(totalBallsRemaining) * (wicketsRemaining >= 5 ? 1.8 : 1.2));
+      const rangeLow = Math.max(runs, projectedTotal - uncertainty);
+      const rangeHigh = projectedTotal + uncertainty + (wicketsRemaining >= 6 ? 6 : 0);
+
+      // 2. Win Probability Calculation
+      let batWinProb = 50;
+      let bowlWinProb = 50;
+
+      if (matchState.innings === 1) {
+        // INNINGS 1: Final score vs Venue Par comparison + Team Defense
+        const parScore = venue.avgScore;
+        const scoreDiff = projectedTotal - parScore;
+        
+        // Logistic Sigmoid for 1st Innings win probability
+        const k = 0.045; // steepness
+        batWinProb = 1 / (1 + Math.exp(-k * (scoreDiff + (batTeam.bowlRating - bowlTeam.batRating) * 0.5)));
+        batWinProb = Math.round(batWinProb * 100);
+
+        document.getElementById("metric2Label").textContent = "Projected Death RR";
+        document.getElementById("metricRRR").textContent = expectedRemainingRR.toFixed(1);
+
+      } else {
+        // INNINGS 2: Run Chase Win Probability
+        const runsNeeded = Math.max(0, target - runs);
+        const rrr = oversRemainingFloat > 0 ? (runsNeeded / oversRemainingFloat) : 99;
+
+        document.getElementById("metric2Label").textContent = "Required Run Rate (RRR)";
+        document.getElementById("metricRRR").textContent = rrr > 36 ? "N/A" : rrr.toFixed(2);
+
+        if (runs >= target) {
+          batWinProb = 100;
+        } else {
+          // Dynamic Chase Model: compares RRR to achievable RR based on wickets in hand
+          const rateMargin = expectedRemainingRR - rrr;
+          const kChase = 0.38;
+          batWinProb = 1 / (1 + Math.exp(-kChase * rateMargin));
+          
+          // Additional wicket vulnerability penalty if required rate is steep
+          if (rrr > 11.5 && wicketsRemaining <= 4) {
+            batWinProb *= 0.75;
+          }
+          batWinProb = Math.round(Math.max(2, Math.min(98, batWinProb * 100)));
+        }
+      }
+
+      // Ensure probabilities sum to 100
+      batWinProb = Math.max(1, Math.min(99, batWinProb));
+      bowlWinProb = 100 - batWinProb;
+
+      // Update UI displays
+      updateResultsUI({
+        batTeam,
+        bowlTeam,
+        venue,
+        runs,
+        overs,
+        wickets,
+        crr,
+        projectedTotal,
+        rangeLow,
+        rangeHigh,
+        batWinProb,
+        bowlWinProb,
+        wicketsRemaining,
+        expectedRemainingRR
+      });
+    }
+
+    function handleInningsTerminated(runs, batTeam, bowlTeam, target) {
+      let batWinProb = 10;
+      let bowlWinProb = 90;
+      if (matchState.innings === 2) {
+        batWinProb = runs >= target ? 100 : 0;
+        bowlWinProb = 100 - batWinProb;
+      } else {
+        batWinProb = runs >= 210 ? 80 : (runs >= 170 ? 45 : 15);
+        bowlWinProb = 100 - batWinProb;
+      }
+
+      document.getElementById("projectedScoreValue").textContent = runs;
+      document.getElementById("scoreRangeLow").textContent = runs;
+      document.getElementById("scoreMedian").textContent = runs;
+      document.getElementById("scoreRangeHigh").textContent = runs;
+      document.getElementById("batWinProbText").textContent = `${batWinProb}%`;
+      document.getElementById("bowlWinProbText").textContent = `${bowlWinProb}%`;
+      document.getElementById("probBarBat").style.width = `${batWinProb}%`;
+      document.getElementById("probBarBowl").style.width = `${bowlWinProb}%`;
+      document.getElementById("probDivider").style.left = `${batWinProb}%`;
+
+      document.getElementById("verdictText").textContent = 
+        `Innings complete at ${runs} runs. ${bowlWinProb > batWinProb ? bowlTeam.shortName : batTeam.shortName} holding strong statistical edge.`;
+    }
+
+    function updateResultsUI(data) {
+      // Score display
+      document.getElementById("projectedScoreValue").textContent = data.projectedTotal;
+      document.getElementById("scoreRangeLow").textContent = data.rangeLow;
+      document.getElementById("scoreMedian").textContent = data.projectedTotal;
+      document.getElementById("scoreRangeHigh").textContent = data.rangeHigh;
+
+      // Probabilities
+      document.getElementById("batWinProbText").textContent = `${data.batWinProb}%`;
+      document.getElementById("bowlWinProbText").textContent = `${data.bowlWinProb}%`;
+      document.getElementById("probBarBat").style.width = `${data.batWinProb}%`;
+      document.getElementById("probBarBowl").style.width = `${data.bowlWinProb}%`;
+      document.getElementById("probDivider").style.left = `${data.batWinProb}%`;
+
+      // Highlight favored team card
+      const batCard = document.getElementById("cardBatting");
+      const bowlCard = document.getElementById("cardBowling");
+      const favoritePill = document.getElementById("favoriteTeamPill");
+
+      if (data.batWinProb >= 50) {
+        batCard.classList.add("favored");
+        bowlCard.classList.remove("favored");
+        favoritePill.textContent = `${data.batTeam.id} Favored (${data.batWinProb}%)`;
+        favoritePill.style.color = data.batTeam.color;
+      } else {
+        bowlCard.classList.add("favored");
+        batCard.classList.remove("favored");
+        favoritePill.textContent = `${data.bowlTeam.id} Favored (${data.bowlWinProb}%)`;
+        favoritePill.style.color = data.bowlTeam.color;
+      }
+
+      // Generate Dynamic AI Match Commentary
+      generateTacticalVerdict(data);
+    }
+
+    function generateTacticalVerdict(data) {
+      const vText = document.getElementById("verdictText");
+      let message = "";
+
+      if (matchState.innings === 1) {
+        if (data.projectedTotal >= data.venue.avgScore + 15) {
+          message = `🔥 <strong>${data.batTeam.shortName}</strong> are blazing ahead of the ${data.venue.shortName} par score (${data.venue.avgScore}). With ${data.wicketsRemaining} wickets in hand, their projected finish of <strong>${data.projectedTotal}</strong> puts immense pressure on ${data.bowlTeam.shortName}.`;
+        } else if (data.projectedTotal <= data.venue.avgScore - 15) {
+          message = `⚠️ <strong>${data.bowlTeam.shortName}</strong> bowling unit has applied tremendous chokehold. ${data.batTeam.shortName} projected total of <strong>${data.projectedTotal}</strong> is below venue par (${data.venue.avgScore}). Needs aggressive death-overs assault.`;
+        } else {
+          message = `⚖️ Balanced contest at ${data.venue.shortName}. Current run rate of <strong>${data.crr.toFixed(2)}</strong> tracks neck-and-neck with historical par. The death overs (16-20) will decide the victor.`;
+        }
+      } else {
+        const runsNeeded = Math.max(0, matchState.targetScore - matchState.currentRuns);
+        if (data.batWinProb >= 65) {
+          message = `🎯 <strong>${data.batTeam.shortName}</strong> firmly in the driving seat of this chase! Need ${runsNeeded} runs with ${data.wicketsRemaining} wickets in hand. Well calibrated to breach the ${matchState.targetScore} target.`;
+        } else if (data.batWinProb <= 35) {
+          message = `🚨 <strong>${data.bowlTeam.shortName}</strong> dominating the chase! Steep required run rate and wicket pressure favor defending champions. ${data.batTeam.shortName} need boundary explosions immediately.`;
+        } else {
+          message = `🔥 Nail-biting finish loading! Required rate is within striking distance. A couple of tight overs or big boundary hits will tilt this game instantly.`;
+        }
+      }
+
+      vText.innerHTML = message;
+    }
+
+    /* ==========================================================================
+       SHARE & CLIPBOARD UTILITIES
+       ========================================================================== */
+    function copyPrediction() {
+      const batTeam = IPL_TEAMS.find(t => t.id === matchState.battingTeamId);
+      const bowlTeam = IPL_TEAMS.find(t => t.id === matchState.bowlingTeamId);
+      const venue = IPL_VENUES.find(v => v.id === matchState.venueId);
+      const score = document.getElementById("projectedScoreValue").textContent;
+      const batProb = document.getElementById("batWinProbText").textContent;
+      const bowlProb = document.getElementById("bowlWinProbText").textContent;
+
+      const summary = `🏏 IPL Match Prediction: ${batTeam.id} vs ${bowlTeam.id}
+🏟️ Venue: ${venue.shortName}
+📊 Score State: ${matchState.currentRuns}/${matchState.wicketsFallen} (${matchState.oversCompleted} ov)
+🎯 Projected Score: ${score}
+⚡ Win Probability: ${batTeam.id} ${batProb} | ${bowlTeam.id} ${bowlProb}
+Simulated via IPL Match Center Pro.`;
+
+      navigator.clipboard.writeText(summary).then(() => {
+        showToast("Prediction copied to clipboard!");
+      }).catch(() => {
+        showToast("Summary generated!");
+      });
+    }
+
+    function shareTwitter() {
+      const batTeam = IPL_TEAMS.find(t => t.id === matchState.battingTeamId);
+      const bowlTeam = IPL_TEAMS.find(t => t.id === matchState.bowlingTeamId);
+      const score = document.getElementById("projectedScoreValue").textContent;
+      const batProb = document.getElementById("batWinProbText").textContent;
+      const bowlProb = document.getElementById("bowlWinProbText").textContent;
+
+      const text = encodeURIComponent(`IPL Match Prediction: ${batTeam.id} vs ${bowlTeam.id}\nProjected Score: ${score} | Win Odds: ${batTeam.id} ${batProb} vs ${bowlTeam.id} ${bowlProb} 🏏🔥 #IPL2025 #CricketPredictor`);
+      window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
